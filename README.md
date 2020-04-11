@@ -12,6 +12,11 @@ To deploy an example HDFS cluster, run:
   docker-compose up -d
 ```
 
+For safe shutdown, run:
+```
+  docker-compose down
+```
+
 HDFS status panel should be avalible at http://localhost:9870, and status of all nodes in docker containers would be avalable on command:
 ```
   docker ps
