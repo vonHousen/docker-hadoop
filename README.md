@@ -1,7 +1,9 @@
 # Hadoop Docker
-This repo is a forked one, based on [docker-hadoop repo](https://github.com/big-data-europe/docker-hadoop)
-The main change here is update of `docker-compose.yml` as described in [version enabling multiple datanodes](https://gist.github.com/themonster2015/35cf4252893cdcc831e79e76deb95cdb)
+This repo is a forked one, based on [docker-hadoop repo](https://github.com/big-data-europe/docker-hadoop).\
+The main change here is update of `docker-compose.yml` as described in [version enabling multiple datanodes](https://gist.github.com/themonster2015/35cf4252893cdcc831e79e76deb95cdb).\
 However, custom adaptations were made due to some bugs. 
+
+<br/>
 
 ## Quick Start
 
@@ -10,6 +12,16 @@ To deploy an example HDFS cluster, run:
   docker-compose up -d
 ```
 
+HDFS status panel should be avalible at http://localhost:9870, and status of all nodes in docker containers would be avalable on command:
+```
+  docker ps
+```
+
+You can check if deployed HDFS is fully functional using word-count example described in [hadoop on docker tutorial](https://clubhouse.io/developer-how-to/how-to-set-up-a-hadoop-cluster-in-docker/).
+
+<br/>
+
+## Docker network
 `docker-compose` creates a docker network (e.g. `docker-hadoop_default`) that can be found by running `docker network list`.
 
 Run `docker network inspect` on the network (e.g. `docker-hadoop_default`) to find the IP the hadoop interfaces are published on. Access these interfaces with the following URLs:
