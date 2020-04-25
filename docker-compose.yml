@@ -1,104 +1,121 @@
-version: "2.1"
+version: "3"
 
 services:
   namenode:
-    build: ./namenode
-    image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
     container_name: namenode
+    restart: always
+    ports:
+      - 9870:9870
+      - 9000:9000
+      - 14000:14000
     volumes:
       - hadoop_namenode:/hadoop/dfs/name
     environment:
       - CLUSTER_NAME=test
     env_file:
       - ./hadoop.env
-    ports:
-      - "9870:9870"
-  
-  resourcemanager:
-    build: ./resourcemanager
-    image: bde2020/hadoop-resourcemanager:1.1.0-hadoop2.7.1-java8
-    container_name: resourcemanager
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode1
     restart: always
-    depends_on:
-      - namenode
-      - datanode1
-      - datanode2
-      - datanode3
+    volumes:
+      - hadoop_datanode1:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
     env_file:
       - ./hadoop.env
-    ports:
-      - "8089:8088"
-  
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode2
+    restart: always
+    volumes:
+      - hadoop_datanode2:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode3
+    restart: always
+    volumes:
+      - hadoop_datanode3:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+
+  datanode4:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode4
+    restart: always
+    volumes:
+      - hadoop_datanode4:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+
+  datanode5:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode5
+    restart: always
+    volumes:
+      - hadoop_datanode5:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode1:9864"
+    env_file:
+      - ./hadoop.env
+
+  nodemanager1:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode1:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+
   historyserver:
-    build: ./historyserver
-    image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
     container_name: historyserver
-    depends_on:
-      - namenode
-      - datanode1
-      - datanode2
-      - datanode3
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode1:9864 resourcemanager:8088"
     volumes:
       - hadoop_historyserver:/hadoop/yarn/timeline
     env_file:
       - ./hadoop.env
-  
-  nodemanager1:
-    build: ./nodemanager
-    image: bde2020/hadoop-nodemanager:1.1.0-hadoop2.7.1-java8
-    container_name: nodemanager1
-    depends_on:
-      - namenode
-      - datanode1
-      - datanode2
-      - datanode3
-    env_file:
-      - ./hadoop.env
-    
-  
-  datanode1:
-    build: ./datanode
-    image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
-    container_name: datanode1
-    depends_on:
-      - namenode
+
+  tc:
+    image: "${DOCKER_IMAGE_TERMINAL:-lukaszlach/docker-tc}"
+    container_name: docker-tc
+    cap_add:
+      - NET_ADMIN
     volumes:
-      - hadoop_datanode1:/hadoop/dfs/data
-    env_file:
-      - ./hadoop.env
-  
-  datanode2:
-    build: ./datanode
-    image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
-    container_name: datanode2
-    depends_on:
-      - namenode
-    volumes:
-      - hadoop_datanode2:/hadoop/dfs/data
-    env_file:
-      - ./hadoop.env
-  
-  datanode3:
-    build: ./datanode
-    image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
-    container_name: datanode3
-    depends_on:
-      - namenode
-    volumes:
-      - hadoop_datanode3:/hadoop/dfs/data
-    env_file:
-      - ./hadoop.env
-  
-  datanode4:
-    build: ./datanode
-    image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
-    container_name: datanode4
-    depends_on:
-      - namenode
-    volumes:
-      - hadoop_datanode4:/hadoop/dfs/data
-    env_file:
-      - ./hadoop.env
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/docker-tc:/var/docker-tc
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+    environment:
+      HTTP_BIND: "${HTTP_BIND:-127.0.0.1}"
+      HTTP_PORT: "${HTTP_PORT:-4080}"
+    network_mode: host
 
 volumes:
   hadoop_namenode:
@@ -106,4 +123,5 @@ volumes:
   hadoop_datanode2:
   hadoop_datanode3:
   hadoop_datanode4:
+  hadoop_datanode5:
   hadoop_historyserver:
